@@ -1,17 +1,20 @@
 version: 0.2
+
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - aws --version
-      - $(aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 170787022296.dkr.ecr.us-east-1.amazonaws.com)
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 170787022296.dkr.ecr.us-east-1.amazonaws.com
       - REPO_URI=170787022296.dkr.ecr.us-east-1.amazonaws.com/docker-repo
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - echo Repo URI: $REPO_URI
+
   build:
     commands:
       - echo Building Docker image...
       - docker build -t $REPO_URI:$IMAGE_TAG .
+
   post_build:
     commands:
       - echo Pushing Docker image...
@@ -19,4 +22,5 @@ phases:
       - echo Build completed on `date`
 
 artifacts:
-  files: '**/*'
+  files:
+    - '**/*'

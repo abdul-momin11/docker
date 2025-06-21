@@ -1,18 +1,22 @@
 version: 0.2
-
 phases:
-  install:
-    runtime-versions:
-      python: 3.11
+  pre_build:
     commands:
-      - echo Installing dependencies...
-      - pip install -r requirements.txt
+      - echo Logging in to Amazon ECR...
+      - aws --version
+      - $(aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 170787022296.dkr.ecr.us-east-1.amazonaws.com)
+      - REPO_URI=170787022296.dkr.ecr.us-east-1.amazonaws.com/docker-repo
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - echo Repo URI: $REPO_URI
   build:
     commands:
-      - echo Running build steps...
-      - python build.py
+      - echo Building Docker image...
+      - docker build -t $REPO_URI:$IMAGE_TAG .
+  post_build:
+    commands:
+      - echo Pushing Docker image...
+      - docker push $REPO_URI:$IMAGE_TAG
+      - echo Build completed on `date`
 
 artifacts:
-  files:
-    - '**/*'
-  base-directory: output
+  files: '**/*'
